@@ -1,4 +1,5 @@
-﻿@page "/lifehtmlgrid"
+﻿@implements IDisposable
+@page "/lifehtmlgrid"
 
 <PageTitle>Game of Life, Html Grid</PageTitle>
 
@@ -26,28 +27,17 @@
 
 <div class="play-stop-button">
 <div></div>
-<button class="btn btn-success" @onclick="PlayStop">@PlayStopButtonText</button>
-<input type="range" min="1" max="500" @bind="stepMs" title="delay in milliseconds, from 1 to 500"/>
+<button class="btn btn-success" @onclick="game.PlayStopAsync">@game.PlayStopButtonText</button>
+<input type="range" min="1" max="500" @bind="game.StepMs" title="delay in milliseconds, from 1 to 500"/>
 </div>
 
 @code {
-    int stepMs = 100;
-
-    GameOfLife game;
-
-    bool IsPlaying = true;
-    string PlayStopButtonText = "Pause";
+    GameTemplate game;
 
     public LifeHtmlGrid()
     {
-        game = new GameOfLife(50, 50);
-        game.PlaceObject(0, 0);
-    }
-
-    void PlayStop()
-    {
-        IsPlaying = !IsPlaying;
-        PlayStopButtonText = IsPlaying ? "Pause" : "Play";
+        game = new GameTemplate(50, 50);
+        game.LoopEvent += () => StateHasChanged(); // MUST CALL StateHasChanged() BECAUSE THIS IS TRIGGERED BY A TIMER INSTEAD OF A USER EVENT
     }
 
     string CssClass(bool alive)
@@ -83,20 +73,12 @@
     {
         await base.OnInitializedAsync();
 
-        await Timer();
+        await game.RunAsync();
     }
 
-    async Task Timer()
+    public void Dispose()
     {
-        while (true)
-        {
-            await Task.Delay(stepMs);
-            if (IsPlaying)
-            {
-                game.Loop();
-                StateHasChanged(); // MUST CALL StateHasChanged() BECAUSE THIS IS TRIGGERED BY A TIMER INSTEAD OF A USER EVENT
-            }
-        }
+        game.Stop();
     }
 
 }

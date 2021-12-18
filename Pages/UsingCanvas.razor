@@ -1,0 +1,72 @@
+﻿@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.Canvas2D
+@implements IDisposable
+@page "/usingcanvas"
+
+<PageTitle>Game of Life, Canvas</PageTitle>
+
+<div class="lifecanvas">
+    <BECanvas Width="500" Height="500" @ref="_canvasReference" ></BECanvas>
+</div>
+
+<div class="play-stop-button">
+<div></div>
+<button class="btn btn-success" @onclick="game.PlayStopAsync">@game.PlayStopButtonText</button>
+<input type="range" min="1" max="500" @bind="game.StepMs" title="delay in milliseconds, from 1 to 500"/>
+</div>
+
+@code {
+
+    BECanvasComponent _canvasReference;
+
+    GameTemplate game;
+
+    public UsingCanvas()
+    {
+        game = new GameTemplate(50, 50);
+        game.LoopEvent += () => RenderGameAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        RenderGameAsync();
+    }
+
+    async void RenderGameAsync()
+    {
+        if (_canvasReference == null)
+        {
+            return;
+        }
+        Canvas2DContext _context = await _canvasReference.CreateCanvas2DAsync();
+
+        await _context.ClearRectAsync(0, 0, 500, 500);
+
+        await _context.SetFillStyleAsync("green");
+
+        for (var i = 0; i < game.Rows; i++)
+        {
+            for (var j = 0; j < game.Columns; j++)
+            {
+                if (game.Cells[i][j])
+                {
+                    await _context.FillRectAsync(i * 10 + 1, j * 10 + 1, 8, 8);
+                }
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await game.RunAsync();
+    }
+
+    public void Dispose()
+    {
+        game.Stop();
+    }
+
+}
