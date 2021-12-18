@@ -7,7 +7,9 @@
 <PageTitle>Game of Life, Canvas</PageTitle>
 
 <div class="lifecanvas">
-    <BECanvas Width="500" Height="500" @ref="_canvasReference" ></BECanvas>
+    <div @onmousedown="MouseEvent" @onmousemove="MouseEvent">
+        <BECanvas Width="500" Height="500" @ref="_canvasReference"></BECanvas>
+    </div>
 </div>
 
 <div class="play-stop-button">
@@ -19,6 +21,7 @@
 @code {
 
     BECanvasComponent _canvasReference;
+    Canvas2DContext _context;
 
     GameTemplate game;
 
@@ -28,18 +31,32 @@
         game.LoopEvent += () => RenderGameAsync();
     }
 
+    void MouseEvent(MouseEventArgs e)
+    {
+        var i = (int)e.OffsetX / 10;
+        var j = (int)e.OffsetY / 10;
+        if ((e.Buttons & 1) == 1) // left button
+        {
+            game.MakeCellAlive(i, j);
+        }
+        if ((e.Buttons & 2) == 2) // right button
+        {
+            game.MakeCellDead(i, j);
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        _context = await _canvasReference.CreateCanvas2DAsync();
         RenderGameAsync();
     }
 
     async void RenderGameAsync()
     {
-        if (_canvasReference == null)
+        if (_context == null)
         {
             return;
         }
-        Canvas2DContext _context = await _canvasReference.CreateCanvas2DAsync();
 
         await _context.ClearRectAsync(0, 0, 500, 500);
 
