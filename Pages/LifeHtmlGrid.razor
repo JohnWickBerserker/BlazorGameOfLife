@@ -2,6 +2,13 @@
 
 <PageTitle>Game of Life, Html Grid</PageTitle>
 
+<div class="instructions">
+<ul>
+    <li>left mouse button - set alive</li>
+    <li>right mouse button - set dead</li>
+</ul>
+</div>
+
 <div class="lifegrid" @oncontextmenu:preventDefault="true" @oncontextmenu="@(e => {})">
     @for (var i = 0; i < game.Cells.Length; i++)
     {
@@ -20,7 +27,7 @@
 <div class="play-stop-button">
 <div></div>
 <button class="btn btn-success" @onclick="PlayStop">@PlayStopButtonText</button>
-<input type="range" min="1" max="500" @bind="stepMs"/>
+<input type="range" min="1" max="500" @bind="stepMs" title="delay in milliseconds, from 1 to 500"/>
 </div>
 
 @code {

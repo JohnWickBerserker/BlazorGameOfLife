@@ -98,3 +98,8 @@ input[type=range]::-moz-range-thumb {
 .nav-link {
     min-width: 130px;
 }
+
+.instructions {
+    width: fit-content;
+    margin: auto;
+}
