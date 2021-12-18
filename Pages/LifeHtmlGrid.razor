@@ -2,15 +2,17 @@
 
 <PageTitle>Game of Life, Html Grid</PageTitle>
 
-<div class="lifegrid">
-    @for (var i = 0; i < cells.Length; i++)
+<div class="lifegrid" @oncontextmenu:preventDefault="true" @oncontextmenu="@(e => {})">
+    @for (var i = 0; i < game.Cells.Length; i++)
     {
-        @for (var j = 0; j < cells[i].Length; j++)
+        @for (var j = 0; j < game.Cells[i].Length; j++)
         {
             var r = i;
             var c = j;
-            <div class="@CssClass(i,j)" @onmousemove="@(e => CellMouseEvent(e, r, c))"
-                @onmousedown="@(e => CellMouseEvent(e, r, c))" oncontextmenu="return false;"></div>
+            <div class="@CssClass(i,j)"
+                @onmousemove="@(e => CellMouseEvent(e, r, c))"
+                @onmousedown="@(e => CellMouseEvent(e, r, c))">
+            </div>
         }
     }
 </div>
@@ -24,26 +26,15 @@
 @code {
     int stepMs = 100;
 
-    const int rows = 50;
-    const int cols = 50;
-    bool[][] cells;
+    GameOfLife game;
 
     bool IsPlaying = true;
     string PlayStopButtonText = "Pause";
 
     public LifeHtmlGrid()
     {
-        cells = new bool[rows][];
-        for (var i = 0; i < rows; i++)
-        {
-            cells[i] = new bool[cols];
-        }
-
-        cells[0][1] = true;
-        cells[1][2] = true;
-        cells[2][0] = true;
-        cells[2][1] = true;
-        cells[2][2] = true;
+        game = new GameOfLife(50, 50);
+        game.PlaceObject(0, 0);
     }
 
     void PlayStop()
@@ -66,30 +57,18 @@
 
     string CssClass(int i, int j)
     {
-        return CssClass(cells[i][j]);
+        return CssClass(game.Cells[i][j]);
     }
 
     void CellMouseEvent(MouseEventArgs e, int i, int j)
     {
         if ((e.Buttons & 1) == 1) // left button
         {
-            if (i < cells.Length)
-            {
-                if (j < cells[i].Length)
-                {
-                    cells[i][j] = true;
-                }
-            }
+            game.MakeCellAlive(i, j);
         }
         if ((e.Buttons & 2) == 2) // right button
         {
-            if (i < cells.Length)
-            {
-                if (j < cells[i].Length)
-                {
-                    cells[i][j] = false;
-                }
-            }
+            game.MakeCellDead(i, j);
         }
     }
 
@@ -107,61 +86,8 @@
             await Task.Delay(stepMs);
             if (IsPlaying)
             {
-                GameLoop();
+                game.Loop();
                 StateHasChanged(); // MUST CALL StateHasChanged() BECAUSE THIS IS TRIGGERED BY A TIMER INSTEAD OF A USER EVENT
-            }
-        }
-    }
-
-    void GameLoop()
-    {
-        bool[][] temp = new bool[rows][];
-        for (var i = 0; i < rows; i++)
-        {
-            temp[i] = cells[i].ToArray();
-        }
-
-        var dr = new int[] { -1, -1, 0, 1, 1, 1, 0, -1 };
-        var dc = new int[] { 0, 1, 1, 1, 0, -1, -1, -1 };
-
-        for (var i = 0; i < rows; i++)
-        {
-            for (var j = 0; j < cols; j++)
-            {
-                var neighbours = 0;
-                for (var k = 0; k < 8; k++)
-                {
-                    var r = i + dr[k];
-                    var c = j + dc[k];
-                    if (r < 0)
-                    {
-                        r = rows - 1;
-                    }
-                    if (c < 0)
-                    {
-                        c = cols - 1;
-                    }
-                    if (r >= rows)
-                    {
-                        r = 0;
-                    }
-                    if (c >= cols)
-                    {
-                        c = 0;
-                    }
-                    if (temp[r][c])
-                    {
-                        neighbours++;
-                    }
-                }
-                if (neighbours == 3)
-                {
-                    cells[i][j] = true;
-                }
-                if (neighbours != 2 && neighbours != 3)
-                {
-                    cells[i][j] = false;
-                }
             }
         }
     }
