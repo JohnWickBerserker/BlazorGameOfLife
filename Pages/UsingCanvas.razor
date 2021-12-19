@@ -2,6 +2,7 @@
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.Canvas2D
 @implements IDisposable
+@implements IHandleEvent
 @page "/usingcanvas"
 
 <PageTitle>Game of Life, Canvas</PageTitle>
@@ -38,10 +39,12 @@
         if ((e.Buttons & 1) == 1) // left button
         {
             game.MakeCellAlive(i, j);
+            RenderGameAsync();
         }
         if ((e.Buttons & 2) == 2) // right button
         {
             game.MakeCellDead(i, j);
+            RenderGameAsync();
         }
     }
 
@@ -85,5 +88,8 @@
     {
         game.Stop();
     }
+
+    Task IHandleEvent.HandleEventAsync(
+        EventCallbackWorkItem callback, object? arg) => callback.InvokeAsync(arg);
 
 }
